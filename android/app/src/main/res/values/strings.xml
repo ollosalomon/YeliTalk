@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Empty label used by the OS splash on some devices to avoid duplicate app name -->
+    <string name="app_name">YeliTalk</string>
+    <string name="window_splash_label"></string>
+</resources>
