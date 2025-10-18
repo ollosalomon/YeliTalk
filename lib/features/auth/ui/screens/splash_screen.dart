@@ -42,13 +42,6 @@ class _SplashScreenState extends State<SplashScreen> {
             // Image.asset nécessite que l'image soit dans /assets/images et déclarée dans pubspec.yaml
             Image.asset('assets/images/yelitalk_logo.png', height: 150),
             const SizedBox(height: 16),
-            Text(
-              'YeliTalk',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                color: const Color(0xFF007BFF), // Bleu vif du logo de la figure
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ],
         ),
       ),

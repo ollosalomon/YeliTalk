@@ -163,15 +163,3 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
-
-// Fichier mocké pour la navigation (à développer plus tard)
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-  // F1.3.2: Bottom Navigation à implémenter ici
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Accueil (Marketplace) - Étape 1 Mockée')),
-    );
-  }
-}

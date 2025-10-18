@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
-// Import des écrans de navigation
 import 'package:YeliTalk/features/chat/ui/screens/chat_list_screen.dart';
 import 'package:YeliTalk/features/profile/ui/screens/profile_screen.dart';
-// IMPORTANT: Import de l'écran de Chat détaillé pour la navigation des cartes
-import 'package:YeliTalk/features/chat/ui/screens/chat_screen.dart';
 
-// ----------------------------------------------------------------------
-// WIDGET PRINCIPAL : Gère la navigation par onglets (F1.3.1)
-// ----------------------------------------------------------------------
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -18,10 +12,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _widgetOptions = <Widget>[
-    const MarketplaceContent(), // Onglet 1
-    const ChatListScreen(), // Onglet 2
-    const ProfileScreen(), // Onglet 3
+  static const List<Widget> _widgetOptions = <Widget>[
+    MarketplaceContent(),
+    ChatListScreen(),
+    ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -32,174 +26,247 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      // Le body affiche le contenu de l'onglet sélectionné
-      body: _widgetOptions.elementAt(_selectedIndex),
-
-      // F1.3.1: Navigation par onglets inférieure
+      body: SafeArea(child: _widgetOptions.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
             label: 'Accueil',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: Icon(Icons.chat_bubble),
             label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
             label: 'Profil',
           ),
         ],
         currentIndex: _selectedIndex,
-        // Utilise la couleur primaire du thème (orange)
-        selectedItemColor: theme.primaryColor,
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Theme.of(context).colorScheme.onSurface,
         onTap: _onItemTapped,
       ),
     );
   }
 }
 
-// ----------------------------------------------------------------------
-// CONTENU DE L'ONGLET ACCUEIL / MARKETPLACE (F1.3.3 & F1.4)
-// ----------------------------------------------------------------------
+// -----------------------------------------------------------------
+// MarketplaceContent corrigé (sans overflow)
+// -----------------------------------------------------------------
+
 class MarketplaceContent extends StatelessWidget {
   const MarketplaceContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return CustomScrollView(
-      slivers: <Widget>[
-        // F1.3.3: SliverAppBar avec barre de recherche
-        SliverAppBar(
-          // Utilisation d'un Container stylisé pour simuler le champ de recherche
-          title: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Rechercher un service...',
-                border: InputBorder.none,
-                icon: Icon(
-                  Icons.search,
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+    return Column(
+      children: [
+        // Partie fixe : titre, recherche et chips
+        Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          padding: const EdgeInsets.only(
+            top: 25,
+            left: 16,
+            right: 16,
+            bottom: 10,
+          ),
+          child: Column(
+            children: [
+              Center(
+                child: Text(
+                  'Marketplace',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un service...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 6.0,
+                    horizontal: 10.0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Chip(label: Text('Toutes')),
+                    SizedBox(width: 8),
+                    Chip(label: Text('Droit Pénal')),
+                    SizedBox(width: 8),
+                    Chip(label: Text('Immobilier')),
+                    SizedBox(width: 8),
+                    Chip(label: Text('Santé')),
+                    SizedBox(width: 8),
+                    Chip(label: Text('Finance')),
+                  ],
+                ),
+              ),
+            ],
           ),
-          floating: true, // La barre s'affiche lors du défilement
-          pinned: false,
-          toolbarHeight: 80.0,
-          backgroundColor: theme.scaffoldBackgroundColor,
         ),
 
-        // Titre de la section (non scrollable)
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Services Spécialisés GPT',
-              style: theme.textTheme.titleLarge,
+        // Partie défilante : contenu
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              children: [
+                Center(
+                  child: Text(
+                    'Catégories de services',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildServiceGrid(context),
+              ],
             ),
-          ),
-        ),
-
-        // F1.4: Liste des services GPT sous forme de grille
-        SliverPadding(
-          padding: const EdgeInsets.all(16.0),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // Deux colonnes (NFR1.3)
-              crossAxisSpacing: 16.0,
-              mainAxisSpacing: 16.0,
-              childAspectRatio: 0.9,
-            ),
-            delegate: SliverChildListDelegate([
-              // Cartes de services mockées
-              const _ServiceCard(
-                title: 'Droit Pénal',
-                icon: Icons.gavel,
-                color: Colors.red,
-              ),
-              const _ServiceCard(
-                title: 'Immobilier',
-                icon: Icons.home_work,
-                color: Colors.blue,
-              ),
-              const _ServiceCard(
-                title: 'Fiscalité',
-                icon: Icons.account_balance,
-                color: Colors.green,
-              ),
-              const _ServiceCard(
-                title: 'Cuisine Ivoirienne',
-                icon: Icons.local_dining,
-                color: Color(0xFFE88A1A),
-              ), // Utilisation de l'orange primaire
-            ]),
           ),
         ),
       ],
     );
   }
-}
 
-// ----------------------------------------------------------------------
-// WIDGET PRIVÉ : Carte d'un Service (F1.4)
-// ----------------------------------------------------------------------
-class _ServiceCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color color;
+  Widget _buildServiceGrid(BuildContext context) {
+    final mockServices = [
+      {
+        'name': 'Assistant Juridique',
+        'desc':
+            'Aide avec les lois locales, le droit de la famille et les contrats.',
+        'icon': Icons.gavel,
+        'isNew': true,
+      },
+      {
+        'name': 'Expert Immobilier',
+        'desc':
+            'Conseils sur l\'achat, la vente et la location de biens en Côte d\'Ivoire.',
+        'icon': Icons.location_city,
+        'isNew': false,
+      },
+      {
+        'name': 'Coach en Productivité',
+        'desc':
+            'Stratégies pour optimiser votre temps et atteindre vos objectifs professionnels.',
+        'icon': Icons.lightbulb_outline,
+        'isNew': false,
+      },
+      {
+        'name': 'Guide de Voyage Local',
+        'desc':
+            'Planification d\'itinéraires personnalisés pour découvrir la région.',
+        'icon': Icons.travel_explore,
+        'isNew': true,
+      },
+    ];
 
-  const _ServiceCard({
-    required this.title,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        // Navigation vers le ChatScreen au clic (F1.4)
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              // Passage du titre du service au ChatScreen
-              builder: (_) => ChatScreen(serviceTitle: title),
+    return Column(
+      children: mockServices
+          .map(
+            (service) => _buildServiceCard(
+              context,
+              service['name'] as String,
+              service['desc'] as String,
+              service['icon'] as IconData,
+              service['isNew'] as bool,
             ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _buildServiceCard(
+    BuildContext context,
+    String name,
+    String description,
+    IconData icon,
+    bool isNew,
+  ) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+      child: InkWell(
+        onTap: () => debugPrint('Sélection du service : $name'),
+        borderRadius: BorderRadius.circular(15.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
+              CircleAvatar(
+                backgroundColor: Theme.of(
+                  context,
+                ).primaryColor.withOpacity(0.1),
+                child: Icon(icon, color: Theme.of(context).primaryColor),
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Parlez à notre expert GPT',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        if (isNew)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade600,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'NOUVEAU',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
+              const Icon(Icons.arrow_forward_ios, size: 16),
             ],
           ),
         ),

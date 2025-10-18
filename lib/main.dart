@@ -1,51 +1,38 @@
 import 'package:flutter/material.dart';
-// 1. Importation du Thème et des Écrans
 import 'core/theme/app_themes.dart'; // Contient lightTheme et darkTheme
 import 'features/auth/ui/screens/splash_screen.dart'; // Notre premier écran (F1.2.1)
+import 'package:provider/provider.dart'; // Assurez-vous d'avoir la dépendance provider
+import 'package:YeliTalk/core/theme/theme_notifier.dart'; // Importez le ThemeNotifier
 
 void main() {
-  // Optionnel: Assurez-vous que les bindings Flutter sont initialisés
-  // WidgetsFlutterBinding.ensureInitialized();
-  runApp(const YeliTalkApp());
+  runApp(
+    // 1. Utilisez ChangeNotifierProvider pour rendre ThemeNotifier accessible
+    ChangeNotifierProvider(
+      create: (_) => ThemeNotifier(),
+      child: const YeliTalkApp(),
+    ),
+  );
 }
 
-// F1.1.5: Pour un prototype complet, nous utiliserons un StatefulWidget
-// pour simuler le basculement entre les thèmes (Clair/Sombre) au niveau global.
-class YeliTalkApp extends StatefulWidget {
+// YeliTalkApp est un StatelessWidget, car la gestion de l'état (thème)
+// est déléguée au ThemeNotifier via Provider.
+class YeliTalkApp extends StatelessWidget {
   const YeliTalkApp({super.key});
 
   @override
-  State<YeliTalkApp> createState() => _YeliTalkAppState();
-
-  // Méthode statique pour permettre aux widgets enfants de basculer le thème
-  static _YeliTalkAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_YeliTalkAppState>()!;
-}
-
-class _YeliTalkAppState extends State<YeliTalkApp> {
-  // Thème par défaut: Clair
-  ThemeMode _themeMode = ThemeMode.light;
-
-  // F1.1.5: Logique de bascule du Mode Sombre
-  void toggleTheme(bool isDarkMode) {
-    setState(() {
-      _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // 2. Métadonnées de l'application
-      title: 'YeliTalk',
-      debugShowCheckedModeBanner: false,
+    // 2. Écoutez les changements de thème (géré par ThemeNotifier)
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
 
-      // 3. Application du Thème (F1.1.5)
-      theme: lightTheme, // Applique le thème clair
-      darkTheme: darkTheme, // Applique le thème sombre
-      themeMode: _themeMode, // Gère le basculement (light, dark, system)
-      // 4. Point de départ (F1.2.1)
-      // Le premier widget affiché sera le SplashScreen
+    return MaterialApp(
+      debugShowCheckedModeBanner: false, // Recommandé en prototype
+      // F1.1.5: Définition des thèmes clair et sombre
+      theme: lightTheme, // Votre thème clair
+      darkTheme: darkTheme, // Votre thème sombre
+      // La propriété themeMode est lue depuis le Notifier
+      themeMode: themeNotifier.themeMode,
+
+      // Point de départ de l'application (F1.2.1)
       home: const SplashScreen(),
     );
   }
