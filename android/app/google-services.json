@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "169187133997",
+    "project_id": "yelitalk",
+    "storage_bucket": "yelitalk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169187133997:android:98e21b2f146bec12da06a4",
+        "android_client_info": {
+          "package_name": "com.yeli.talk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVb3dEbQuQ4L8DUwbgQWeOaAU8y9E4PIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169187133997:android:a5b8fadebd819ceeda06a4",
+        "android_client_info": {
+          "package_name": "com.yeli.yelitalk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVb3dEbQuQ4L8DUwbgQWeOaAU8y9E4PIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

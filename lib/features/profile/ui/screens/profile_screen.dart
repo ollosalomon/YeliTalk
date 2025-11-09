@@ -1,75 +1,117 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:YeliTalk/core/theme/theme_notifier.dart';
-import 'package:YeliTalk/features/profile/ui/screens/about_screen.dart'; // NOUVEAU
+import 'package:YeliTalk/features/profile/ui/screens/about_screen.dart';
+// 💡 NOUVEL IMPORT : Votre service d'authentification
+import 'package:YeliTalk/features/auth/auth_service.dart';
+// NOUVEL IMPORT : Pour rediriger vers l'écran de connexion
+import 'package:YeliTalk/features/auth/ui/screens/login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+// CHANGEMENT : Transformé en StatefulWidget pour gérer l'instance AuthService
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
-  // Fonction pour les actions du bouton de déconnexion
-  void _logout(BuildContext context) {
-    // F1.2.3: La déconnexion est simulée pour l'Étape 1
-    print("Déconnexion simulée. Retour à l'écran de connexion.");
-    // Retour à l'écran de connexion (SplashScreen naviguerait vers Login)
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Instance du service d'authentification
+  final AuthService _authService = AuthService();
+  bool _isSigningOut = false;
+
+  // F2.1.5: Déconnexion réelle avec Firebase
+  Future<void> _logout() async {
+    setState(() {
+      _isSigningOut = true;
+    });
+
+    try {
+      // 1. Appelle la méthode de déconnexion (qui gère Firebase et Google Sign-In)
+      await _authService.signOut();
+
+      // 2. Supprime toutes les routes précédentes et navigue vers l'écran de connexion
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (Route<dynamic> route) => false, // Supprime toutes les routes
+        );
+      }
+    } catch (e) {
+      // Gérer l'erreur de déconnexion (bien que rare)
+      debugPrint('Erreur de déconnexion : $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Échec de la déconnexion. Veuillez réessayer.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningOut = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Écoutez le ThemeNotifier pour la bascule Mode Sombre (F1.1.5)
     final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final theme = Theme.of(context);
+
+    // Note: Pour afficher le nom et l'email réels, nous aurions besoin d'accéder
+    // à `FirebaseAuth.instance.currentUser` ici.
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Profil & Paramètres',
-        ), // Ajusté le titre comme dans votre image
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Profil & Paramètres'), elevation: 0),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             const SizedBox(height: 20),
             // F1.6.1: Avatar, Nom, Email
-            const CircleAvatar(
-              radius: 40,
-              // Remplacez par le chemin de l'image de profil réelle
-              child: Icon(Icons.person, size: 40),
-            ),
+            // ... (Widgets d'information utilisateur inchangés) ...
+            const CircleAvatar(radius: 40, child: Icon(Icons.person, size: 40)),
             const SizedBox(height: 8),
             Text(
               'John Doe',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               'john.doe@exemple.com',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: 20),
 
-            const Divider(), // Séparateur visuel
-            // F1.6.2: Modifier profil
+            const Divider(),
+
+            // ... (Tous les _buildSettingsItem, _buildToggleItem, etc. restent inchangés) ...
+
+            // [COLLEZ ICI TOUT LE CODE DE VOS WIDGETS UTILITAIRES]
+            // ... (Ex: _buildSettingsItem, _buildToggleItem, _buildDestructiveItem, _buildSliderItem) ...
+            // Pour ne pas surcharger la réponse, nous supposons que ces méthodes sont incluses.
             _buildSettingsItem(
               context,
               icon: Icons.person_outline,
               title: 'Compte',
               subtitle: 'Modifier profil, Changer mot de passe',
-              onTap: () => print('Naviguer vers Modifier Profil (F1.6.2)'),
+              onTap: () => debugPrint('Naviguer vers Modifier Profil (F1.6.2)'),
             ),
-
-            // Historique de conversation (F1.6.2)
             _buildSettingsItem(
               context,
               icon: Icons.history,
               title: 'Historique de conversation',
-              onTap: () => print('Naviguer vers Historique (F1.6.2)'),
+              onTap: () => debugPrint('Naviguer vers Historique (F1.6.2)'),
             ),
-
-            // F1.6.3: Toggle Mode Sombre (avec ThemeNotifier)
             _buildToggleItem(
               context,
               icon: Icons.wb_sunny_outlined,
@@ -81,59 +123,45 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
             ),
-
-            // F1.6.4: Slider Taille du texte (Mocké)
             _buildSliderItem(
               context,
               icon: Icons.text_fields,
               title: 'Taille du texte',
-              // Note: L'implémentation réelle de la taille du texte est plus complexe
-              // et utilise le `MediaQuery` ou un Provider pour l'héritage.
-              onChanged: (value) => print('Taille du texte ajustée à $value'),
+              onChanged: (value) =>
+                  debugPrint('Taille du texte ajustée à $value'),
             ),
-
-            // F1.6.5: Gestion notifications (Toggle mocké)
             _buildToggleItem(
               context,
               icon: Icons.notifications_none,
               title: 'Notifications',
               value: true,
-              onChanged: (value) => print('Notifications : $value (F1.6.5)'),
+              onChanged: (value) =>
+                  debugPrint('Notifications : $value (F1.6.5)'),
             ),
-
             const Divider(),
-
-            // F1.6.6: Effacer l'historique
             _buildDestructiveItem(
               context,
               icon: Icons.delete_outline,
               title: 'Effacer l\'historique',
-              onTap: () => print(
+              onTap: () => debugPrint(
                 'Ouvrir dialogue confirmation Effacer Historique (F1.6.6)',
               ),
             ),
-
-            // F1.6.7: Télécharger mes données (RGPD)
             _buildSettingsItem(
               context,
               icon: Icons.cloud_download_outlined,
               title: 'Télécharger mes données',
-              onTap: () => print('Télécharger données (F1.6.7)'),
+              onTap: () => debugPrint('Télécharger données (F1.6.7)'),
             ),
-
-            // F1.6.8: Supprimer mon compte
             _buildDestructiveItem(
               context,
               icon: Icons.person_remove_alt_1_outlined,
               title: 'Supprimer mon compte',
-              onTap: () => print(
+              onTap: () => debugPrint(
                 'Ouvrir dialogue confirmation Suppression Compte (F1.6.8)',
               ),
             ),
-
             const Divider(),
-
-            // F1.7: Aide & À Propos (NOUVEAU LIEN)
             _buildSettingsItem(
               context,
               icon: Icons.info_outline,
@@ -145,11 +173,33 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
 
-            // Bouton de Déconnexion
             const SizedBox(height: 30),
-            OutlinedButton(
-              onPressed: () => _logout(context),
-              child: const Text('Déconnexion'),
+
+            // Bouton de Déconnexion mis à jour
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: OutlinedButton(
+                onPressed: _isSigningOut
+                    ? null
+                    : _logout, // Désactivation pendant la déconnexion
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: theme.colorScheme.error),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: _isSigningOut
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.error,
+                        ),
+                      )
+                    : Text(
+                        'Déconnexion',
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+              ),
             ),
             const SizedBox(height: 50),
           ],
@@ -157,6 +207,8 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  // 💡 N'OUBLIEZ PAS D'INCLURE ICI TOUTES VOS MÉTHODES _buildSettingsItem, _buildToggleItem, etc.
 
   // Widget utilitaire pour les liens de paramètres
   Widget _buildSettingsItem(
@@ -187,7 +239,7 @@ class ProfileScreen extends StatelessWidget {
       leading: Icon(icon, color: Theme.of(context).primaryColor),
       title: Text(title),
       trailing: Switch(value: value, onChanged: onChanged),
-      onTap: () => onChanged(!value), // Permet de toggler en tapant le ListTile
+      onTap: () => onChanged(!value),
     );
   }
 
